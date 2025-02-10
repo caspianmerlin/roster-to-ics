@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "roster-to-ics",
+    "gui/roster-to-ics-qt"
+]
+
+resolver = "2"
