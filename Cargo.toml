@@ -1,8 +1,10 @@
-[workspace]
+[package]
+name = "roster-to-ics"
+version = "0.1.0"
+edition = "2021"
 
-members = [
-    "roster-to-ics",
-    "gui/roster-to-ics-qt"
-]
-
-resolver = "2"
+[dependencies]
+clap = { version = "4.5.28", features = ["derive"] }
+ics = "0.5.8"
+calamine = "0.26.1"
+anyhow = "1.0.95"
