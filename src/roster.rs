@@ -130,9 +130,13 @@ impl CalendarEvent {
 
 pub fn generate_calendar_events(first_day_of_month: NaiveDate, days: Vec<EventType>) -> Vec<CalendarEvent>{
     let mut events = Vec::new();
-    let mut currently_on_leave = false;
+    let mut days_off_or_leave_started = None;
+    let mut leave_polluted = false;
 
     for (i, day) in days.iter().enumerate() {
+
+        let mut today_is_day_off_or_leave = false;
+
         // If we can generate a start and end_time, do that
         if let Some((hour_start, min_start, hour_end, min_end)) = day.start_and_end_time() {
             let start = first_day_of_month.checked_add_days(Days::new(i as u64)).unwrap().and_hms_opt(hour_start, min_start, 0).unwrap();
@@ -147,9 +151,56 @@ pub fn generate_calendar_events(first_day_of_month: NaiveDate, days: Vec<EventTy
 
         // If it's annual leave, deal with that
         else if let EventType::Leave = day {
+            today_is_day_off_or_leave = true;
+            leave_polluted = true;
+            if days_off_or_leave_started.is_none() {
+                days_off_or_leave_started = Some(first_day_of_month.checked_add_days(Days::new(i as u64)).unwrap());
+            }
+        }
+
+        // If it's not annual leave and not a normal event, it's an all-day event
+        else {
+            // If it's a day off, deal with that. We don't record them unless they are leave-adjacent
+            if let EventType::DayOff = day {
+                today_is_day_off_or_leave = true;
+                if days_off_or_leave_started.is_none() {
+                    days_off_or_leave_started = Some(first_day_of_month.checked_add_days(Days::new(i as u64)).unwrap());
+                }
+            }
+            else {
+                events.push(CalendarEvent::AllDay { name: day.to_string(), date: first_day_of_month.checked_add_days(Days::new(i as u64)).unwrap() });
+            }
+        }
+
+        // Now, if today was not leave but we have a leave start date, it means it ended yesterday.
+        if !today_is_day_off_or_leave && days_off_or_leave_started.is_some() {
+            let start_date = days_off_or_leave_started.take().unwrap();
+            if leave_polluted {
+                leave_polluted = false;
+                
+                let end_date = first_day_of_month.checked_add_days(Days::new((i - 1) as u64)).unwrap();
+                // If they're the same day, we'll put it as an all-day event. Otherwise, as a multi-day event.
+                if start_date == end_date {
+                    events.push(CalendarEvent::AllDay { name: String::from("Annual leave"), date: start_date });
+                } else {
+                    events.push(CalendarEvent::MultiDay { name: String::from("Annual leave"), start: start_date, end: end_date });
+                }
+            }
             
+        }
+
+    }
+
+    if days_off_or_leave_started.is_some() && leave_polluted {
+        let start_date = days_off_or_leave_started.take().unwrap();
+        let end_date = first_day_of_month.checked_add_days(Days::new((days.len() - 1) as u64)).unwrap();
+        // If they're the same day, we'll put it as an all-day event. Otherwise, as a multi-day event.
+        if start_date == end_date {
+            events.push(CalendarEvent::AllDay { name: String::from("Annual leave"), date: start_date });
+        } else {
+            events.push(CalendarEvent::MultiDay { name: String::from("Annual leave"), start: start_date, end: end_date });
         }
     }
 
-    todo!()
+    events
 }

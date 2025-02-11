@@ -65,5 +65,9 @@ fn main() -> Result<(), anyhow::Error> {
         current_day = current_day.succ_opt().unwrap();
     }
 
+    // Convert to list of events
+    let event_list = roster::generate_calendar_events(first_day_of_month, days);
+    println!("{:#?}", event_list);
+
     Ok(())
 }
