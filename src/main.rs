@@ -8,6 +8,7 @@ mod args;
 mod xlsx;
 mod util;
 mod roster;
+mod ics;
 
 fn main() -> Result<(), anyhow::Error> {
     let args = args::Args::parse();

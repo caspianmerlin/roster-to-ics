@@ -16,6 +16,10 @@ pub struct Args {
     #[clap(short)]
     pub year: Option<u16>,
 
+    /// Override the calendar name. If not specified, it will default to "My Calendar"
+    #[clap(short)]
+    pub name: Option<String>,
+    
     /// The path to write the output .ics file to
     #[arg(short)]
     pub output_ics: PathBuf

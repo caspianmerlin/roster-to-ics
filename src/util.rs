@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{fmt::Display, io::Write};
 
 use anyhow::Context;
 use chrono::{NaiveDate, Datelike};
@@ -73,5 +73,29 @@ pub fn get_time_from_user(prompt: &str) -> (u32, u32) {
                 continue;
         }
         break (hours, mins);
+    }
+}
+
+pub enum WarningAdvance {
+    HoursBefore(u8),
+    MinutesBefore(u8),
+    DaysBefore(u8),
+}
+impl Display for WarningAdvance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "-PT")?;
+        match self {
+            WarningAdvance::HoursBefore(n) => write!(f, "{n}H"),
+            WarningAdvance::MinutesBefore(n) => write!(f, "{n}M"),
+            WarningAdvance::DaysBefore(n) => write!(f, "{n}D"),
+        }
+    }
+}
+impl WarningAdvance {
+    pub fn new(s: &str) -> anyhow::Result<Self> {
+        let mut num = s.to_lowercase();
+        let suffix = num.split_off(num.len() - 1);
+        
+        todo!()
     }
 }
