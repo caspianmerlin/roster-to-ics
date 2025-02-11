@@ -24,7 +24,7 @@ pub struct Args {
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum Month {
-    Jan,
+    Jan = 1,
     Feb,
     Mar,
     Apr,
