@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{Days, NaiveDate, NaiveDateTime};
 
 
 #[derive(Debug)]
@@ -128,7 +128,28 @@ impl CalendarEvent {
     }
 }
 
-pub fn generate_calendar_events(first_day_of_month: NaiveDate, num_days_in_month: usize, days: Vec<EventType>) -> Vec<CalendarEvent>{
-    
+pub fn generate_calendar_events(first_day_of_month: NaiveDate, days: Vec<EventType>) -> Vec<CalendarEvent>{
+    let mut events = Vec::new();
+    let mut currently_on_leave = false;
+
+    for (i, day) in days.iter().enumerate() {
+        // If we can generate a start and end_time, do that
+        if let Some((hour_start, min_start, hour_end, min_end)) = day.start_and_end_time() {
+            let start = first_day_of_month.checked_add_days(Days::new(i as u64)).unwrap().and_hms_opt(hour_start, min_start, 0).unwrap();
+            let mut end = first_day_of_month.checked_add_days(Days::new(i as u64)).unwrap().and_hms_opt(hour_end, min_end, 0).unwrap();
+
+            // If it's a night shift, we finish on the following day
+            if let EventType::N = day {
+                end = end.checked_add_days(Days::new(1)).unwrap();
+            }
+            events.push(CalendarEvent::new_normal(day.to_string(), start, end));
+        }
+
+        // If it's annual leave, deal with that
+        else if let EventType::Leave = day {
+            
+        }
+    }
+
     todo!()
 }
