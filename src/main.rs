@@ -1,8 +1,10 @@
 use std::io::{self, Write};
 
-use anyhow::bail;
+use anyhow::{bail, Context};
 use clap::Parser;
+use email_address::EmailAddress;
 use roster::EventType;
+use util::ReminderAdvance;
 
 mod args;
 mod xlsx;
@@ -12,11 +14,22 @@ mod ics;
 
 fn main() -> Result<(), anyhow::Error> {
     let args = args::Args::parse();
+
+    // Validate some of the args
     if let Some(year) = args.year {
         if !(2000..2100).contains(&year) {
             bail!("Invalid year ({year}). Must be between 2000 and 2099.");
         }
     }
+    if let Some(email) = &args.email {
+        if !EmailAddress::is_valid(&email) {
+            bail!("Invalid e-mail address: {email}");
+        }
+    }
+    let reminder_advance = match &args.reminder_time {
+        Some(time) => ReminderAdvance::new(time)?,
+        None => ReminderAdvance::MinutesBefore(60),
+    };
 
     let first_day_of_month = util::get_first_day_of_month(&args)?;
     let num_of_days_in_month = util::num_days_in_month(&first_day_of_month);
@@ -68,7 +81,19 @@ fn main() -> Result<(), anyhow::Error> {
 
     // Convert to list of events
     let event_list = roster::generate_calendar_events(first_day_of_month, days);
-    println!("{:#?}", event_list);
+    
+
+    // Initialise calendar
+
+    let (mut calendar, settings) = ics::new_calendar(args.name.clone(), args.email.clone(), reminder_advance);
+    // Populate calendar
+    for calendar_event in &event_list {
+        let event = ics::new_event(&settings, calendar_event);
+        calendar.add_event(event);
+    }
+
+    // Write calendar
+    calendar.save_file(args.output_ics).context("Unable to save file")?;
 
     Ok(())
 }

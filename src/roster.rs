@@ -116,17 +116,7 @@ pub enum CalendarEvent {
     AllDay { name: String, date: NaiveDate },
     MultiDay { name: String, start: NaiveDate, end: NaiveDate },
 }
-impl CalendarEvent {
-    pub fn new_normal(name: String, start: NaiveDateTime, end: NaiveDateTime) -> CalendarEvent {
-        CalendarEvent::Normal { name, start, end }
-    }
-    pub fn new_all_day(name: String, date: NaiveDate) -> CalendarEvent {
-        CalendarEvent::AllDay { name, date }
-    }
-    pub fn new_multi_day(name: String, start: NaiveDate, end: NaiveDate) -> CalendarEvent {
-        CalendarEvent::MultiDay { name, start, end }
-    }
-}
+
 
 pub fn generate_calendar_events(first_day_of_month: NaiveDate, days: Vec<EventType>) -> Vec<CalendarEvent>{
     let mut events = Vec::new();
@@ -146,7 +136,7 @@ pub fn generate_calendar_events(first_day_of_month: NaiveDate, days: Vec<EventTy
             if let EventType::N = day {
                 end = end.checked_add_days(Days::new(1)).unwrap();
             }
-            events.push(CalendarEvent::new_normal(day.to_string(), start, end));
+            events.push(CalendarEvent::Normal { name: day.to_string(), start, end });
         }
 
         // If it's annual leave, deal with that

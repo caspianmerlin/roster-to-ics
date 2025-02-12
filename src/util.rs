@@ -1,6 +1,6 @@
 use std::{fmt::Display, io::Write};
 
-use anyhow::Context;
+use anyhow::{bail, Context};
 use chrono::{NaiveDate, Datelike};
 
 use crate::args::Args;
@@ -76,26 +76,34 @@ pub fn get_time_from_user(prompt: &str) -> (u32, u32) {
     }
 }
 
-pub enum WarningAdvance {
+pub enum ReminderAdvance {
     HoursBefore(u8),
     MinutesBefore(u8),
     DaysBefore(u8),
 }
-impl Display for WarningAdvance {
+impl Display for ReminderAdvance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "-PT")?;
         match self {
-            WarningAdvance::HoursBefore(n) => write!(f, "{n}H"),
-            WarningAdvance::MinutesBefore(n) => write!(f, "{n}M"),
-            WarningAdvance::DaysBefore(n) => write!(f, "{n}D"),
+            ReminderAdvance::HoursBefore(n) => write!(f, "{n}H"),
+            ReminderAdvance::MinutesBefore(n) => write!(f, "{n}M"),
+            ReminderAdvance::DaysBefore(n) => write!(f, "{n}D"),
         }
     }
 }
-impl WarningAdvance {
+impl ReminderAdvance {
     pub fn new(s: &str) -> anyhow::Result<Self> {
         let mut num = s.to_lowercase();
         let suffix = num.split_off(num.len() - 1);
-        
-        todo!()
+        let num = num.parse::<u8>().context("Invalid parameter given to -r. Must be a number less than 1000 followed by H M or D")?;
+        if num > 100 {
+            bail!("Invalid parameter given to -r. Must be a number less than 1000 followed by H M or D");
+        }
+        match suffix.as_str() {
+            "h" => Ok(ReminderAdvance::HoursBefore(num)),
+            "m" => Ok(ReminderAdvance::MinutesBefore(num)),
+            "d" => Ok(ReminderAdvance::DaysBefore(num)),
+            _ => bail!("Argument passed to -r must be followed by h(hours), m(minutes) or d(days)")
+        }
     }
 }

@@ -11,7 +11,6 @@ pub struct Args {
     #[clap(short, value_enum)]
     pub month: Option<Month>,
 
-
     /// Override the year. If this is not specified, we will attempt to extract the year from the file name
     #[clap(short)]
     pub year: Option<u16>,
@@ -20,6 +19,14 @@ pub struct Args {
     #[clap(short)]
     pub name: Option<String>,
     
+    /// Provide an e-mail address if you wish to receive an e-mail reminder of the event 60m beforehand. Override with -r flag to set different time
+    #[clap(short)]
+    pub email: Option<String>,
+
+    /// 
+    #[clap(short)]
+    pub reminder_time: Option<String>,
+
     /// The path to write the output .ics file to
     #[arg(short)]
     pub output_ics: PathBuf
