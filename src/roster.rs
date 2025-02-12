@@ -188,9 +188,14 @@ pub fn generate_calendar_events(first_day_of_month: NaiveDate, days: Vec<EventTy
         if start_date == end_date {
             events.push(CalendarEvent::AllDay { name: String::from("Annual leave"), date: start_date });
         } else {
-            events.push(CalendarEvent::MultiDay { name: String::from("Annual leave"), start: start_date, end: end_date });
+            events.push(CalendarEvent::MultiDay { name: String::from("Annual leave"), start: start_date, end: end_date.checked_add_days(Days::new(1)).unwrap() });
         }
     }
 
     events
+}
+
+#[test]
+fn test_here() {
+    
 }
