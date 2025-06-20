@@ -23,7 +23,7 @@ pub struct Args {
     #[clap(short)]
     pub email: Option<String>,
 
-    /// 
+    /// How long before the event you wish to be notified / e-mailed. A number followed by m, h or d for minutes, hours or days
     #[clap(short)]
     pub reminder_time: Option<String>,
 
